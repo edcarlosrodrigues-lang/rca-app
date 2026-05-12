@@ -7,7 +7,7 @@ import plotly.graph_objects as go
 import plotly.express as px
 
 st.set_page_config(
-    page_title="RCA Industrial",
+    page_title="AQF Industrial",
     page_icon="🔧",
     layout="wide",
     initial_sidebar_state="collapsed",
@@ -93,7 +93,7 @@ if "registros" not in st.session_state:
 
 st.markdown("""
 <div class="main-header">
-  <h1>🔧 RCA INDUSTRIAL</h1>
+  <h1>🔧 AQF INDUSTRIAL</h1>
   <p>Análise de Causa Raiz · Manufatura & Falhas Industriais</p>
 </div>
 """, unsafe_allow_html=True)
@@ -105,24 +105,24 @@ fechados = sum(1 for r in st.session_state.registros if r.get("status") == "Conc
 
 c1, c2, c3, c4 = st.columns(4)
 for col, val, lbl in zip([c1,c2,c3,c4],[total,abertos,em_prog,fechados],
-                          ["Total de RCAs","Abertos","Em Andamento","Concluídos"]):
+                          ["Total de AQFs","Abertos","Em Andamento","Concluídos"]):
     col.markdown(f'<div class="metric-card"><div class="value">{val}</div><div class="label">{lbl}</div></div>',
                  unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
-tab1, tab2, tab3, tab4 = st.tabs(["➕  NOVO RCA","📋  REGISTROS","📊  DASHBOARD","📖  GUIA"])
+tab1, tab2, tab3, tab4 = st.tabs(["➕  NOVA AQF","📋  REGISTROS","📊  DASHBOARD","📖  GUIA"])
 
 with tab1:
     st.markdown('<div class="section-title">Identificação da Falha</div>', unsafe_allow_html=True)
     col_a, col_b = st.columns(2)
     with col_a:
-        titulo      = st.text_input("Título da Ocorrência", placeholder="Ex: Parada de linha – Prensa P-03")
-        equipamento = st.text_input("Equipamento / Linha", placeholder="Ex: Prensa hidráulica P-03")
+        titulo      = st.text_input("Título da Ocorrência", placeholder="Ex: Parada de linha – Motor elétrico P-03")
+        equipamento = st.text_input("Equipamento / Linha", placeholder="Ex: Motor elétrico P-03")
         area        = st.selectbox("Área", ["Produção","Manutenção","Qualidade","Logística","Utilidades","Outro"])
     with col_b:
         data_ocorr  = st.date_input("Data da Ocorrência", value=datetime.today())
         gravidade   = st.selectbox("Gravidade", ["🔴 Crítica","🟠 Alta","🟡 Média","🟢 Baixa"])
-        responsavel = st.text_input("Responsável pela Análise", placeholder="Nome do analista")
+        responsavel = st.text_input("Responsável pela Análise", placeholder="Nome do técnico")
 
     descricao = st.text_area("Descrição da Falha / Problema", height=100,
                              placeholder="Descreva o que aconteceu, quando, como foi detectado...")
