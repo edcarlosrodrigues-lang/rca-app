@@ -2,8 +2,9 @@ import streamlit as st
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import cm
-from reportlab.platypus import Table, TableStyle
+from reportlab.platypus import Table, TableStyle, Paragraph
 from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from datetime import datetime
 from io import BytesIO
 
@@ -61,10 +62,13 @@ def criar_pdf_mom(data, num_analise, area, maquina, tag, nota_tec, equipamento_p
                   quando, quem, qual, como, quanto, acoes, maquina_4m, material_4m, metodo_4m,
                   mao_obra_4m, efeito_falha, aval1, aval2, aval3, aval4, comp_danificado,
                   buscar_almox, encontrou_almox, perda_regulagem, falha_repetitiva, tempo_quebra,
-                  pq1, pq2, pq3, pq4, pq5, causa_raiz, padrao):
+                  pq1, pq2, pq3, pq4, pq5, causa_raiz, padrao, resp_manut, resp_producao, resp_qualidade):
     buffer = BytesIO()
     c = canvas.Canvas(buffer, pagesize=A4)
     width, height = A4
+    styles = getSampleStyleSheet()
+    style_normal = ParagraphStyle('normal', parent=styles['Normal'], fontSize=7, leading=9)
+    style_bold = ParagraphStyle('bold', parent=styles['Normal'], fontSize=7, leading=9, fontName='Helvetica-Bold')
     y = 1.2
 
     def draw_table(data, col_widths, y_pos, row_height=0.5):
@@ -77,7 +81,8 @@ def criar_pdf_mom(data, num_analise, area, maquina, tag, nota_tec, equipamento_p
             ('RIGHTPADDING', (0,0), (-1,-1), 3),
         ]))
         t.wrapOn(c, width, height)
-        t.drawOn(c, 1*cm, height - y_pos*cm - len(data)*row_height*cm)
+        table_height = len(data)*row_height*cm
+        t.drawOn(c, 1*cm, height - y_pos*cm - table_height)
         return len(data) * row_height
 
     def draw_checkbox_table(perguntas, respostas):
@@ -85,17 +90,18 @@ def criar_pdf_mom(data, num_analise, area, maquina, tag, nota_tec, equipamento_p
         for i, p in enumerate(perguntas):
             sim = "X" if respostas[i] == "SIM" else ""
             nao = "X" if respostas[i] == "NÃO" else ""
-            data.append([p, "SIM", sim, "NÃO", nao])
+            data.append([Paragraph(p, style_normal), "SIM", sim, "NÃO", nao])
 
         t = Table(data, colWidths=[13*cm, 1*cm, 0.5*cm, 1*cm, 0.5*cm])
         t.setStyle(TableStyle([
-            ('FONT', (0,0), (0,-1), 'Helvetica', 7),
             ('FONT', (1,0), (-1,-1), 'Helvetica-Bold', 7),
             ('GRID', (0,0), (-1,-1), 0.5, colors.black),
             ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
             ('ALIGN', (2,0), (2,-1), 'CENTER'),
             ('ALIGN', (4,0), (4,-1), 'CENTER'),
             ('LEFTPADDING', (0,0), (-1,-1), 3),
+            ('TOPPADDING', (0,0), (-1,-1), 3),
+            ('BOTTOMPADDING', (0,0), (-1,-1), 3),
         ]))
         return t
 
@@ -127,38 +133,43 @@ def criar_pdf_mom(data, num_analise, area, maquina, tag, nota_tec, equipamento_p
     c.drawString(1*cm, height - y*cm, "Descrição do Problema - Análise 5W2H")
     y += 0.5
     data_5w2h = [
-        ["O quê?", o_que], ["Onde?", onde], ["Quando?", quando],
-        ["Quem?", quem], ["Qual?", qual], ["Como?", como], ["Quanto?", quanto]
+        [Paragraph("<b>O quê?</b>", style_bold), Paragraph(o_que or "", style_normal)],
+        [Paragraph("<b>Onde?</b>", style_bold), Paragraph(onde or "", style_normal)],
+        [Paragraph("<b>Quando?</b>", style_bold), Paragraph(quando or "", style_normal)],
+        [Paragraph("<b>Quem?</b>", style_bold), Paragraph(quem or "", style_normal)],
+        [Paragraph("<b>Qual?</b>", style_bold), Paragraph(qual or "", style_normal)],
+        [Paragraph("<b>Como?</b>", style_bold), Paragraph(como or "", style_normal)],
+        [Paragraph("<b>Quanto?</b>", style_bold), Paragraph(quanto or "", style_normal)]
     ]
-    for row in data_5w2h:
-        t = Table([row], colWidths=[3*cm, 15*cm])
-        t.setStyle(TableStyle([
-            ('FONT', (0,0), (0,0), 'Helvetica-Bold', 7),
-            ('FONT', (1,0), (1,0), 'Helvetica', 7),
-            ('GRID', (0,0), (-1,-1), 0.5, colors.black),
-            ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
-            ('LEFTPADDING', (0,0), (-1,-1), 3),
-        ]))
-        t.wrapOn(c, width, height)
-        t.drawOn(c, 1*cm, height - y*cm - 0.7*cm)
-        y += 0.7
-    y += 0.3
-
-    c.setFont("Helvetica-Bold", 9)
-    c.drawString(1*cm, height - y*cm, "Ações CORRETIVAS")
-    y += 0.5
-    data_acoes = [[acoes]]
-    t = Table(data_acoes, colWidths=[19*cm], rowHeights=2*cm)
+    t = Table(data_5w2h, colWidths=[3*cm, 15*cm])
     t.setStyle(TableStyle([
-        ('FONT', (0,0), (-1,-1), 'Helvetica', 7),
         ('GRID', (0,0), (-1,-1), 0.5, colors.black),
         ('VALIGN', (0,0), (-1,-1), 'TOP'),
         ('LEFTPADDING', (0,0), (-1,-1), 3),
         ('TOPPADDING', (0,0), (-1,-1), 3),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 3),
     ]))
     t.wrapOn(c, width, height)
-    t.drawOn(c, 1*cm, height - y*cm - 2*cm)
-    y += 2.3
+    table_h = t._height
+    t.drawOn(c, 1*cm, height - y*cm - table_h)
+    y += (table_h/cm) + 0.3
+
+    c.setFont("Helvetica-Bold", 9)
+    c.drawString(1*cm, height - y*cm, "Ações CORRETIVAS")
+    y += 0.5
+    data_acoes = [[Paragraph(acoes or "", style_normal)]]
+    t = Table(data_acoes, colWidths=[19*cm])
+    t.setStyle(TableStyle([
+        ('GRID', (0,0), (-1,-1), 0.5, colors.black),
+        ('VALIGN', (0,0), (-1,-1), 'TOP'),
+        ('LEFTPADDING', (0,0), (-1,-1), 3),
+        ('TOPPADDING', (0,0), (-1,-1), 3),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 3),
+    ]))
+    t.wrapOn(c, width, height)
+    table_h = t._height
+    t.drawOn(c, 1*cm, height - y*cm - table_h)
+    y += (table_h/cm) + 0.3
 
     c.setFont("Helvetica-Bold", 9)
     c.drawString(1*cm, height - y*cm, "Avaliação das ações corretivas")
@@ -167,8 +178,13 @@ def criar_pdf_mom(data, num_analise, area, maquina, tag, nota_tec, equipamento_p
     respostas = [aval1, aval2, aval3, aval4]
     t = draw_checkbox_table(perguntas, respostas)
     t.wrapOn(c, width, height)
-    t.drawOn(c, 1*cm, height - y*cm - 1.8*cm)
-    y += 2.1
+    table_h = t._height
+    t.drawOn(c, 1*cm, height - y*cm - table_h)
+    y += (table_h/cm) + 0.3
+
+    if y > 22:
+        c.showPage()
+        y = 1.2
 
     c.setFont("Helvetica-Bold", 9)
     c.drawString(1*cm, height - y*cm, "TIPO DA QUEBRA / FALHA")
@@ -176,25 +192,27 @@ def criar_pdf_mom(data, num_analise, area, maquina, tag, nota_tec, equipamento_p
 
     data_q1 = [
         ["Componente Danificado", "Perda de Regulagem", "Qual o Tempo?"],
-        [comp_danificado, f"Não [{ 'X' if perda_regulagem=='Não' else ' ' }] Sim [{ 'X' if perda_regulagem=='Sim' else ' ' }]", tempo_quebra]
+        [Paragraph(comp_danificado or "", style_normal), f"Não [{'X' if perda_regulagem=='Não' else ' '}] Sim [{'X' if perda_regulagem=='Sim' else ' '}]", Paragraph(tempo_quebra or "", style_normal)]
     ]
-    t = Table(data_q1, colWidths=[6*cm, 4*cm, 9*cm], rowHeights=[0.4*cm, 0.6*cm])
+    t = Table(data_q1, colWidths=[6*cm, 4*cm, 9*cm])
     t.setStyle(TableStyle([
         ('FONT', (0,0), (-1,-1), 'Helvetica', 7),
         ('GRID', (0,0), (-1,-1), 0.5, colors.black),
-        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ('VALIGN', (0,0), (-1,-1), 'TOP'),
         ('LEFTPADDING', (0,0), (-1,-1), 3),
+        ('TOPPADDING', (0,0), (-1,-1), 3),
     ]))
     t.wrapOn(c, width, height)
-    t.drawOn(c, 1*cm, height - y*cm - 1*cm)
-    y += 1.1
+    table_h = t._height
+    t.drawOn(c, 1*cm, height - y*cm - table_h)
+    y += (table_h/cm) + 0.1
 
     data_q2 = [
         ["Foi necessário buscar componentes no Almoxarifado?", "Foi encontrado o componente no Almoxarifado?"],
-        [f"Não [{ 'X' if buscar_almox=='Não' else ' ' }] Sim [{ 'X' if buscar_almox=='Sim' else ' ' }]",
-         f"Não [{ 'X' if encontrou_almox=='Não' else ' ' }] Sim [{ 'X' if encontrou_almox=='Sim' else ' ' }]"]
+        [f"Não [{'X' if buscar_almox=='Não' else ' '}] Sim [{'X' if buscar_almox=='Sim' else ' '}]",
+         f"Não [{'X' if encontrou_almox=='Não' else ' '}] Sim [{'X' if encontrou_almox=='Sim' else ' '}]"]
     ]
-    t = Table(data_q2, colWidths=[9.5*cm, 9.5*cm], rowHeights=[0.4*cm, 0.6*cm])
+    t = Table(data_q2, colWidths=[9.5*cm, 9.5*cm])
     t.setStyle(TableStyle([
         ('FONT', (0,0), (-1,-1), 'Helvetica', 7),
         ('GRID', (0,0), (-1,-1), 0.5, colors.black),
@@ -202,11 +220,12 @@ def criar_pdf_mom(data, num_analise, area, maquina, tag, nota_tec, equipamento_p
         ('LEFTPADDING', (0,0), (-1,-1), 3),
     ]))
     t.wrapOn(c, width, height)
-    t.drawOn(c, 1*cm, height - y*cm - 1*cm)
-    y += 1.1
+    table_h = t._height
+    t.drawOn(c, 1*cm, height - y*cm - table_h)
+    y += (table_h/cm) + 0.1
 
-    data_q3 = [["Falha Repetitiva:", f"Não [{ 'X' if falha_repetitiva=='Não' else ' ' }] Sim [{ 'X' if falha_repetitiva=='Sim' else ' ' }]"]]
-    t = Table(data_q3, colWidths=[3*cm, 16*cm], rowHeights=0.6*cm)
+    data_q3 = [["Falha Repetitiva:", f"Não [{'X' if falha_repetitiva=='Não' else ' '}] Sim [{'X' if falha_repetitiva=='Sim' else ' '}]"]]
+    t = Table(data_q3, colWidths=[3*cm, 16*cm])
     t.setStyle(TableStyle([
         ('FONT', (0,0), (-1,-1), 'Helvetica', 7),
         ('GRID', (0,0), (-1,-1), 0.5, colors.black),
@@ -214,46 +233,52 @@ def criar_pdf_mom(data, num_analise, area, maquina, tag, nota_tec, equipamento_p
         ('LEFTPADDING', (0,0), (-1,-1), 3),
     ]))
     t.wrapOn(c, width, height)
-    t.drawOn(c, 1*cm, height - y*cm - 0.6*cm)
-    y += 0.9
+    table_h = t._height
+    t.drawOn(c, 1*cm, height - y*cm - table_h)
+    y += (table_h/cm) + 0.3
 
     c.setFont("Helvetica-Bold", 9)
     c.drawString(1*cm, height - y*cm, "Análise dos 5 Porquês")
     y += 0.5
 
     data_5pq = [["CAUSA Nº:", ""]]
-    porques = [["Por quê 1?", pq1], ["Por quê 2?", pq2], ["Por quê 3?", pq3], ["Por quê 4?", pq4], ["Por quê 5?", pq5], ["C. RAIZ:", causa_raiz], ["PADRÃO:", padrao]]
+    porques = [
+        [Paragraph("<b>Por quê 1?</b>", style_bold), Paragraph(pq1 or "", style_normal)],
+        [Paragraph("<b>Por quê 2?</b>", style_bold), Paragraph(pq2 or "", style_normal)],
+        [Paragraph("<b>Por quê 3?</b>", style_bold), Paragraph(pq3 or "", style_normal)],
+        [Paragraph("<b>Por quê 4?</b>", style_bold), Paragraph(pq4 or "", style_normal)],
+        [Paragraph("<b>Por quê 5?</b>", style_bold), Paragraph(pq5 or "", style_normal)],
+        [Paragraph("<b>C. RAIZ:</b>", style_bold), Paragraph(causa_raiz or "", style_normal)],
+        [Paragraph("<b>PADRÃO:</b>", style_bold), Paragraph(padrao or "", style_normal)]
+    ]
     data_5pq.extend(porques)
 
-    t = Table(data_5pq, colWidths=[2*cm, 17*cm], rowHeights=0.5*cm)
+    t = Table(data_5pq, colWidths=[2*cm, 17*cm])
     t.setStyle(TableStyle([
-        ('FONT', (0,0), (0,-1), 'Helvetica-Bold', 7),
-        ('FONT', (1,0), (1,-1), 'Helvetica', 7),
         ('GRID', (0,0), (-1,-1), 0.5, colors.black),
-        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ('VALIGN', (0,0), (-1,-1), 'TOP'),
         ('LEFTPADDING', (0,0), (-1,-1), 3),
+        ('TOPPADDING', (0,0), (-1,-1), 3),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 3),
     ]))
     t.wrapOn(c, width, height)
-    t.drawOn(c, 1*cm, height - y*cm - 4*cm)
-    y += 4.3
+    table_h = t._height
+    t.drawOn(c, 1*cm, height - y*cm - table_h)
+    y += (table_h/cm) + 0.3
 
-    # ISHIKAWA EM TABELA - CORRIGIDO
+    if y > 18:
+        c.showPage()
+        y = 1.2
+
     c.setFont("Helvetica-Bold", 9)
     c.drawString(1*cm, height - y*cm, "Análise de CAUSA e EFEITO (4M)")
     y += 0.5
 
     def limpa_num(texto):
         linhas = []
-        for linha in texto.split('\n'):
+        for linha in (texto or "").split('\n'):
             if linha.strip():
-                if ' - ' in linha:
-                    partes = linha.split(' - ', 1)
-                    if len(partes) == 2 and partes[0].strip().replace('.', '').isdigit():
-                        linhas.append(linha)
-                    else:
-                        linhas.append(linha)
-                else:
-                    linhas.append(linha)
+                linhas.append(linha)
         return linhas
 
     maquina_linhas = limpa_num(maquina_4m)
@@ -267,26 +292,20 @@ def criar_pdf_mom(data, num_analise, area, maquina, tag, nota_tec, equipamento_p
     while len(mao_obra_linhas) < 4: mao_obra_linhas.append("")
 
     data_ishikawa = [
-        ["MÉTODO", "", "MÁQUINA", "", "Efeito da Falha/Defeito"],
-        [metodo_linhas[0], "", maquina_linhas[0], "", efeito_falha],
-        [metodo_linhas[1], "", maquina_linhas[1], "", ""],
-        [metodo_linhas[2], "", maquina_linhas[2], "", ""],
-        [metodo_linhas[3], "", maquina_linhas[3], "", ""],
-        ["MÃO DE OBRA", "", "MATERIAL", "", ""],
-        [mao_obra_linhas[0], "", material_linhas[0], "", ""],
-        [mao_obra_linhas[1], "", material_linhas[1], "", ""],
-        [mao_obra_linhas[2], "", material_linhas[2], "", ""],
-        [mao_obra_linhas[3], "", material_linhas[3], "", ""],
+        [Paragraph("<b>MÉTODO</b>", style_bold), "", Paragraph("<b>MÁQUINA</b>", style_bold), "", Paragraph("<b>Efeito da Falha/Defeito</b>", style_bold)],
+        [Paragraph(metodo_linhas[0], style_normal), "", Paragraph(maquina_linhas[0], style_normal), "", Paragraph(efeito_falha or "", style_normal)],
+        [Paragraph(metodo_linhas[1], style_normal), "", Paragraph(maquina_linhas[1], style_normal), "", ""],
+        [Paragraph(metodo_linhas[2], style_normal), "", Paragraph(maquina_linhas[2], style_normal), "", ""],
+        [Paragraph(metodo_linhas[3], style_normal), "", Paragraph(maquina_linhas[3], style_normal), "", ""],
+        [Paragraph("<b>MÃO DE OBRA</b>", style_bold), "", Paragraph("<b>MATERIAL</b>", style_bold), "", ""],
+        [Paragraph(mao_obra_linhas[0], style_normal), "", Paragraph(material_linhas[0], style_normal), "", ""],
+        [Paragraph(mao_obra_linhas[1], style_normal), "", Paragraph(material_linhas[1], style_normal), "", ""],
+        [Paragraph(mao_obra_linhas[2], style_normal), "", Paragraph(material_linhas[2], style_normal), "", ""],
+        [Paragraph(mao_obra_linhas[3], style_normal), "", Paragraph(material_linhas[3], style_normal), "", ""],
     ]
 
-    t = Table(data_ishikawa, colWidths=[4.5*cm, 0.5*cm, 4.5*cm, 0.5*cm, 9*cm], rowHeights=0.5*cm)
+    t = Table(data_ishikawa, colWidths=[4.5*cm, 0.5*cm, 4.5*cm, 0.5*cm, 9*cm])
     t.setStyle(TableStyle([
-        ('FONT', (0,0), (0,0), 'Helvetica-Bold', 8),
-        ('FONT', (2,0), (2,0), 'Helvetica-Bold', 8),
-        ('FONT', (0,5), (0,5), 'Helvetica-Bold', 8),
-        ('FONT', (2,5), (2,5), 'Helvetica-Bold', 8),
-        ('FONT', (4,0), (4,0), 'Helvetica-Bold', 8),
-        ('FONT', (0,1), (-1,-1), 'Helvetica', 7),
         ('GRID', (0,0), (0,4), 0.5, colors.black),
         ('GRID', (2,0), (2,4), 0.5, colors.black),
         ('GRID', (0,5), (0,9), 0.5, colors.black),
@@ -296,14 +315,42 @@ def criar_pdf_mom(data, num_analise, area, maquina, tag, nota_tec, equipamento_p
         ('VALIGN', (0,0), (-1,-1), 'TOP'),
         ('LEFTPADDING', (0,0), (-1,-1), 3),
         ('TOPPADDING', (0,0), (-1,-1), 2),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 2),
         ('ALIGN', (4,0), (4,1), 'CENTER'),
         ('VALIGN', (4,0), (4,1), 'MIDDLE'),
     ]))
     t.wrapOn(c, width, height)
-    t.drawOn(c, 1*cm, height - y*cm - 5*cm)
+    table_h = t._height
+    t.drawOn(c, 1*cm, height - y*cm - table_h)
+    y += (table_h/cm) + 0.5
 
     c.setFont("Helvetica", 6)
-    c.drawString(1*cm, height - y*cm - 5.3*cm, "*Circular as Causas priorizadas")
+    c.drawString(1*cm, height - y*cm, "*Circular as Causas priorizadas")
+    y += 1.0
+
+    # ===== ASSINATURAS NO FINAL DO PDF =====
+    c.setFont("Helvetica-Bold", 8)
+    c.drawString(1*cm, height - y*cm, "ASSINATURAS:")
+    y += 0.8
+    
+    # Linha de assinaturas
+    assinaturas = [
+        ["Responsável Manutenção", "Responsável Produção", "Qualidade/Segurança"],
+        [resp_manut or "_________________", resp_producao or "_________________", resp_qualidade or "_________________"],
+        ["Data: ___/___/______", "Data: ___/___/______", "Data: ___/___/______"]
+    ]
+    
+    t = Table(assinaturas, colWidths=[6.3*cm, 6.3*cm, 6.3*cm], rowHeights=[0.4*cm, 1*cm, 0.4*cm])
+    t.setStyle(TableStyle([
+        ('FONT', (0,0), (-1,0), 'Helvetica-Bold', 7),
+        ('FONT', (0,1), (-1,-1), 'Helvetica', 7),
+        ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+        ('VALIGN', (0,1), (-1,1), 'BOTTOM'),
+        ('LINEABOVE', (0,1), (-1,1), 0.5, colors.black),
+        ('TOPPADDING', (0,1), (-1,1), 15),
+    ]))
+    t.wrapOn(c, width, height)
+    t.drawOn(c, 1*cm, height - y*cm - 1.8*cm)
 
     c.showPage()
     c.save()
@@ -389,6 +436,12 @@ with tab1:
         mao_obra_4m = col4.text_area("Mão de Obra", "13-Falta treinamento\n14\n15\n16")
         efeito_falha = st.text_input("Efeito da Falha/Defeito")
 
+        st.markdown("#### Responsáveis / Assinaturas")
+        col1, col2, col3 = st.columns(3)
+        resp_manut = col1.text_input("Responsável Manutenção")
+        resp_producao = col2.text_input("Responsável Produção")
+        resp_qualidade = col3.text_input("Qualidade/Segurança")
+
         enviado = st.form_submit_button("Gerar PDF da Análise", use_container_width=True)
 
     if enviado:
@@ -415,7 +468,7 @@ with tab1:
                                acoes, maquina_4m, material_4m, metodo_4m, mao_obra_4m, efeito_falha,
                                aval1, aval2, aval3, aval4, comp_danificado, buscar_almox, encontrou_almox,
                                perda_regulagem, falha_repetitiva, tempo_quebra, pq1, pq2, pq3, pq4, pq5,
-                               causa_raiz, padrao)
+                               causa_raiz, padrao, resp_manut, resp_producao, resp_qualidade)
 
             st.success("✅ PDF gerado e registro salvo com sucesso!")
             st.download_button(
