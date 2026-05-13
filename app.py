@@ -52,8 +52,8 @@ with tab1:
     st.subheader("1. Dados Gerais")
     col_a, col_b, col_c = st.columns(3)
     with col_a:
-        data_ocorrencia = st.date_input("Data da Ocorrência")
-        turno = st.selectbox("Turno", ["1º Turno", "2º Turno", "3º Turno"])
+       data_ocorrencia = st.date_input("Data da Ocorrência", format="DD/MM/YYYY")
+       turno = st.selectbox("Turno", ["1º Turno", "2º Turno", "3º Turno"])
     with col_b:
         hora_ocorrencia = st.time_input("Hora da Ocorrência")
         area = st.selectbox("Área", ["Produção", "Manutenção", "Qualidade", "Logística", "Utilidades"])
