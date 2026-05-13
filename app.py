@@ -328,19 +328,16 @@ def criar_pdf_mom(data, num_analise, area, maquina, tag, nota_tec, equipamento_p
 
     c.setFont("Helvetica", 6)
     c.drawString(1*cm, height - y*cm, "*Circular as Causas priorizadas")
-    y += 1.5
+    y += 2.0
 
-    # ===== ASSINATURA NO FINAL DO PDF - CORRIGIDA =====
+    # ===== ASSINATURA FINAL - SÓ RUBRICA MANUAL =====
     c.setFont("Helvetica-Bold", 8)
     c.drawString(1*cm, height - y*cm, "RESPONSÁVEL TÉCNICO:")
-    y += 1.2
+    y += 1.5
 
     c.line(1*cm, height - y*cm, 9*cm, height - y*cm)
-    c.setFont("Helvetica", 8)
-    c.drawCentredString(5*cm, height - y*cm + 0.3*cm, resp_tecnico or "")
-    y += 0.6
-
-    c.drawString(1*cm, height - y*cm, "Data: ___/___/______")
+    c.setFont("Helvetica", 6)
+    c.drawString(1*cm, height - y*cm - 0.3*cm, "(Assinatura/Rubrica)")
 
     c.showPage()
     c.save()
@@ -427,7 +424,7 @@ with tab1:
         efeito_falha = st.text_input("Efeito da Falha/Defeito")
 
         st.markdown("#### Responsável Técnico")
-        resp_tecnico = st.text_input("Nome do Responsável Técnico")
+        resp_tecnico = st.text_input("Nome do Responsável Técnico - será preenchido manualmente")
 
         enviado = st.form_submit_button("Gerar PDF da Análise", use_container_width=True)
 
