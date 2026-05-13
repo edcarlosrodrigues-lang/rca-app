@@ -62,7 +62,7 @@ def criar_pdf_mom(data, num_analise, area, maquina, tag, nota_tec, equipamento_p
                   quando, quem, qual, como, quanto, acoes, maquina_4m, material_4m, metodo_4m,
                   mao_obra_4m, efeito_falha, aval1, aval2, aval3, aval4, comp_danificado,
                   buscar_almox, encontrou_almox, perda_regulagem, falha_repetitiva, tempo_quebra,
-                  pq1, pq2, pq3, pq4, pq5, causa_raiz, padrao, resp_manut, resp_producao, resp_qualidade):
+                  pq1, pq2, pq3, pq4, pq5, causa_raiz, padrao, resp_tecnico):
     buffer = BytesIO()
     c = canvas.Canvas(buffer, pagesize=A4)
     width, height = A4
@@ -328,29 +328,26 @@ def criar_pdf_mom(data, num_analise, area, maquina, tag, nota_tec, equipamento_p
     c.drawString(1*cm, height - y*cm, "*Circular as Causas priorizadas")
     y += 1.0
 
-    # ===== ASSINATURAS NO FINAL DO PDF =====
+    # ===== ASSINATURA NO FINAL DO PDF =====
     c.setFont("Helvetica-Bold", 8)
-    c.drawString(1*cm, height - y*cm, "ASSINATURAS:")
+    c.drawString(1*cm, height - y*cm, "RESPONSÁVEL TÉCNICO:")
     y += 0.8
-    
-    # Linha de assinaturas
-    assinaturas = [
-        ["Responsável Manutenção", "Responsável Produção", "Qualidade/Segurança"],
-        [resp_manut or "_________________", resp_producao or "_________________", resp_qualidade or "_________________"],
-        ["Data: ___/___/______", "Data: ___/___/______", "Data: ___/___/______"]
+
+    assinatura = [
+        [resp_tecnico or "_________________________"],
+        ["Data: ___/___/______"]
     ]
-    
-    t = Table(assinaturas, colWidths=[6.3*cm, 6.3*cm, 6.3*cm], rowHeights=[0.4*cm, 1*cm, 0.4*cm])
+
+    t = Table(assinatura, colWidths=[8*cm], rowHeights=[1*cm, 0.4*cm])
     t.setStyle(TableStyle([
-        ('FONT', (0,0), (-1,0), 'Helvetica-Bold', 7),
-        ('FONT', (0,1), (-1,-1), 'Helvetica', 7),
+        ('FONT', (0,0), (-1,-1), 'Helvetica', 8),
         ('ALIGN', (0,0), (-1,-1), 'CENTER'),
-        ('VALIGN', (0,1), (-1,1), 'BOTTOM'),
-        ('LINEABOVE', (0,1), (-1,1), 0.5, colors.black),
-        ('TOPPADDING', (0,1), (-1,1), 15),
+        ('VALIGN', (0,0), (0,0), 'BOTTOM'),
+        ('LINEABOVE', (0,0), (0,0), 0.5, colors.black),
+        ('TOPPADDING', (0,0), (0,0), 15),
     ]))
     t.wrapOn(c, width, height)
-    t.drawOn(c, 1*cm, height - y*cm - 1.8*cm)
+    t.drawOn(c, 1*cm, height - y*cm - 1.4*cm)
 
     c.showPage()
     c.save()
@@ -436,11 +433,8 @@ with tab1:
         mao_obra_4m = col4.text_area("Mão de Obra", "13-Falta treinamento\n14\n15\n16")
         efeito_falha = st.text_input("Efeito da Falha/Defeito")
 
-        st.markdown("#### Responsáveis / Assinaturas")
-        col1, col2, col3 = st.columns(3)
-        resp_manut = col1.text_input("Responsável Manutenção")
-        resp_producao = col2.text_input("Responsável Produção")
-        resp_qualidade = col3.text_input("Qualidade/Segurança")
+        st.markdown("#### Responsável Técnico")
+        resp_tecnico = st.text_input("Nome do Responsável Técnico")
 
         enviado = st.form_submit_button("Gerar PDF da Análise", use_container_width=True)
 
@@ -468,7 +462,7 @@ with tab1:
                                acoes, maquina_4m, material_4m, metodo_4m, mao_obra_4m, efeito_falha,
                                aval1, aval2, aval3, aval4, comp_danificado, buscar_almox, encontrou_almox,
                                perda_regulagem, falha_repetitiva, tempo_quebra, pq1, pq2, pq3, pq4, pq5,
-                               causa_raiz, padrao, resp_manut, resp_producao, resp_qualidade)
+                               causa_raiz, padrao, resp_tecnico)
 
             st.success("✅ PDF gerado e registro salvo com sucesso!")
             st.download_button(
