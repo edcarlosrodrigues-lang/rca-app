@@ -295,35 +295,30 @@ def criar_pdf_mom(data, num_analise, area, maquina, tag, nota_tec, equipamento_p
     while len(metodo_linhas) < 4: metodo_linhas.append("")
     while len(mao_obra_linhas) < 4: mao_obra_linhas.append("")
 
+    # FIX DEFINITIVO: Remove SPAN e coloca tudo na mesma célula
+    texto_efeito = f"<b>Efeito da Falha/Defeito</b><br/><br/>{efeito_falha_4m or 'NÃO PREENCHIDO'}"
+
     data_ishikawa = [
-        [Paragraph("<b>MÉTODO</b>", style_bold), "", Paragraph("<b>MÁQUINA</b>", style_bold), "", Paragraph("<b>Efeito da Falha/Defeito</b>", style_bold)],
-        [Paragraph(metodo_linhas[0], style_normal), "", Paragraph(maquina_linhas[0], style_normal), "", Paragraph(str(efeito_falha_4m) if efeito_falha_4m else "VALOR VAZIO", style_normal)],
-        [Paragraph(metodo_linhas[1], style_normal), "", Paragraph(maquina_linhas[1], style_normal), "", ""],
-        [Paragraph(metodo_linhas[2], style_normal), "", Paragraph(maquina_linhas[2], style_normal), "", ""],
-        [Paragraph(metodo_linhas[3], style_normal), "", Paragraph(maquina_linhas[3], style_normal), "", ""],
-        [Paragraph("<b>MÃO DE OBRA</b>", style_bold), "", Paragraph("<b>MATERIAL</b>", style_bold), "", ""],
-        [Paragraph(mao_obra_linhas[0], style_normal), "", Paragraph(material_linhas[0], style_normal), "", ""],
-        [Paragraph(mao_obra_linhas[1], style_normal), "", Paragraph(material_linhas[1], style_normal), "", ""],
-        [Paragraph(mao_obra_linhas[2], style_normal), "", Paragraph(material_linhas[2], style_normal), "", ""],
-        [Paragraph(mao_obra_linhas[3], style_normal), "", Paragraph(material_linhas[3], style_normal), "", ""],
+        [Paragraph("<b>MÉTODO</b>", style_bold), Paragraph("<b>MÁQUINA</b>", style_bold), Paragraph(texto_efeito, style_normal)],
+        [Paragraph(metodo_linhas[0], style_normal), Paragraph(maquina_linhas[0], style_normal), ""],
+        [Paragraph(metodo_linhas[1], style_normal), Paragraph(maquina_linhas[1], style_normal), ""],
+        [Paragraph(metodo_linhas[2], style_normal), Paragraph(maquina_linhas[2], style_normal), ""],
+        [Paragraph(metodo_linhas[3], style_normal), Paragraph(maquina_linhas[3], style_normal), ""],
+        [Paragraph("<b>MÃO DE OBRA</b>", style_bold), Paragraph("<b>MATERIAL</b>", style_bold), ""],
+        [Paragraph(mao_obra_linhas[0], style_normal), Paragraph(material_linhas[0], style_normal), ""],
+        [Paragraph(mao_obra_linhas[1], style_normal), Paragraph(material_linhas[1], style_normal), ""],
+        [Paragraph(mao_obra_linhas[2], style_normal), Paragraph(material_linhas[2], style_normal), ""],
+        [Paragraph(mao_obra_linhas[3], style_normal), Paragraph(material_linhas[3], style_normal), ""],
     ]
 
-    t = Table(data_ishikawa, colWidths=[4.5*cm, 0.5*cm, 4.5*cm, 0.5*cm, 9*cm])
+    t = Table(data_ishikawa, colWidths=[6*cm, 6*cm, 7*cm])
     t.setStyle(TableStyle([
-        ('GRID', (0,0), (0,4), 0.5, colors.black),
-        ('GRID', (2,0), (2,4), 0.5, colors.black),
-        ('GRID', (0,5), (0,9), 0.5, colors.black),
-        ('GRID', (2,5), (2,9), 0.5, colors.black),
-        ('SPAN', (4,0), (4,9)),
-        ('BOX', (4,0), (4,9), 0.5, colors.black),
-        ('BOX', (0,0), (3,9), 1, colors.black),
+        ('GRID', (0,0), (-1,-1), 0.5, colors.black),
         ('VALIGN', (0,0), (-1,-1), 'TOP'),
         ('LEFTPADDING', (0,0), (-1,-1), 3),
-        ('TOPPADDING', (0,0), (-1,-1), 2),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 2),
-        ('ALIGN', (4,0), (4,0), 'CENTER'),
-        ('VALIGN', (4,0), (4,0), 'MIDDLE'),
-        ('VALIGN', (4,1), (4,1), 'TOP'),
+        ('TOPPADDING', (0,0), (-1,-1), 3),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 3),
+        ('BOX', (0,0), (-1,-1), 1, colors.black),
     ]))
     t.wrapOn(c, width, height)
     table_h = t._height
@@ -381,7 +376,7 @@ with tab1:
         col1, col2, col3 = st.columns(3)
         hrs_parada = col1.text_input("HRS PARADA EGA")
         hrs_manut = col2.text_input("HRS MANUTENÇÃO")
-        efeito_geral = col3.text_input("EFEITO")
+        efeito_geral = col3.text_input("EFEITO GERAL")
 
         col1, col2 = st.columns(2)
         manutentor1 = col1.text_input("Manutentor 1")
@@ -486,13 +481,17 @@ with tab1:
             }
             st.session_state.historico_mom.append(registro)
 
-            pdf = criar_pdf_mom(data, num_analise, area, maquina, tag, nota_tec,
-                               equipamento_parado, classificacao, hrs_parada, hrs_manut, efeito_geral,
-                               manutentor1, turno1, o_que, onde, quando, quem, qual, como, quanto,
-                               acoes, maquina_4m, material_4m, metodo_4m, mao_obra_4m, efeito_falha_4m,
-                               aval1, aval2, aval3, aval4, comp_danificado, buscar_almox, encontrou_almox,
-                               perda_regulagem, falha_repetitiva, tempo_quebra, pq1, pq2, pq3, pq4, pq5,
-                               causa_raiz, padrao, resp_tecnico, assinatura_img)
+            st.write(f"DEBUG - Valor do Efeito 4M: {efeito_falha_4m}")
+
+            pdf = criar_pdf_mom(
+                data, num_analise, area, maquina, tag, nota_tec,
+                equipamento_parado, classificacao, hrs_parada, hrs_manut, efeito_geral,
+                manutentor1, turno1, o_que, onde, quando, quem, qual, como, quanto,
+                acoes, maquina_4m, material_4m, metodo_4m, mao_obra_4m, efeito_falha_4m,
+                aval1, aval2, aval3, aval4, comp_danificado, buscar_almox, encontrou_almox,
+                perda_regulagem, falha_repetitiva, tempo_quebra, pq1, pq2, pq3, pq4, pq5,
+                causa_raiz, padrao, resp_tecnico, assinatura_img
+            )
 
             st.success("✅ PDF gerado com assinatura digital!")
             st.download_button(
