@@ -141,13 +141,13 @@ with tab1:
             st.error("Faça a assinatura no campo acima antes de gerar o PDF!")
         else:
             st.session_state.historico_mom.append({
-                "data_ocorrencia": data_ocorrencia.strftime('%d/%m/%Y'),
-                "MOM": num_mom,
-                "Área": area,
-                "Equipamento": equipamento,
-                "Responsável": nome_forma,
-                "Prazo": prazo.strftime('%d/%m/%Y')
-            })
+    "Data": data_ocorrencia.strftime('%d/%m/%Y'),
+    "MOM": num_mom,
+    "Área": area,
+    "Equipamento": equipamento,
+    "Responsável": nome_forma,
+    "Prazo": prazo.strftime('%d/%m/%Y')
+})
 
             buffer = BytesIO()
             doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=2*cm, leftMargin=2*cm, topMargin=2*cm, bottomMargin=2*cm)
