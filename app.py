@@ -310,14 +310,16 @@ def criar_pdf_mom(data, num_analise, area, maquina, tag, nota_tec, equipamento_p
         ('GRID', (2,0), (2,4), 0.5, colors.black),
         ('GRID', (0,5), (0,9), 0.5, colors.black),
         ('GRID', (2,5), (2,9), 0.5, colors.black),
-        ('GRID', (4,0), (4,1), 0.5, colors.black),
-        ('BOX', (0,0), (4,9), 1, colors.black),
+        ('SPAN', (4,0), (4,9)),
+        ('BOX', (4,0), (4,9), 0.5, colors.black),
+        ('BOX', (0,0), (3,9), 1, colors.black),
         ('VALIGN', (0,0), (-1,-1), 'TOP'),
         ('LEFTPADDING', (0,0), (-1,-1), 3),
         ('TOPPADDING', (0,0), (-1,-1), 2),
         ('BOTTOMPADDING', (0,0), (-1,-1), 2),
-        ('ALIGN', (4,0), (4,1), 'CENTER'),
-        ('VALIGN', (4,0), (4,1), 'MIDDLE'),
+        ('ALIGN', (4,0), (4,0), 'CENTER'),
+        ('VALIGN', (4,0), (4,0), 'MIDDLE'),
+        ('VALIGN', (4,1), (4,1), 'TOP'),
     ]))
     t.wrapOn(c, width, height)
     table_h = t._height
@@ -326,28 +328,19 @@ def criar_pdf_mom(data, num_analise, area, maquina, tag, nota_tec, equipamento_p
 
     c.setFont("Helvetica", 6)
     c.drawString(1*cm, height - y*cm, "*Circular as Causas priorizadas")
-    y += 1.0
+    y += 1.5
 
-    # ===== ASSINATURA NO FINAL DO PDF =====
+    # ===== ASSINATURA NO FINAL DO PDF - CORRIGIDA =====
     c.setFont("Helvetica-Bold", 8)
     c.drawString(1*cm, height - y*cm, "RESPONSÁVEL TÉCNICO:")
-    y += 0.8
+    y += 1.2
 
-    assinatura = [
-        [resp_tecnico or "_________________________"],
-        ["Data: ___/___/______"]
-    ]
+    c.line(1*cm, height - y*cm, 9*cm, height - y*cm)
+    c.setFont("Helvetica", 8)
+    c.drawCentredString(5*cm, height - y*cm + 0.3*cm, resp_tecnico or "")
+    y += 0.6
 
-    t = Table(assinatura, colWidths=[8*cm], rowHeights=[1*cm, 0.4*cm])
-    t.setStyle(TableStyle([
-        ('FONT', (0,0), (-1,-1), 'Helvetica', 8),
-        ('ALIGN', (0,0), (-1,-1), 'CENTER'),
-        ('VALIGN', (0,0), (0,0), 'BOTTOM'),
-        ('LINEABOVE', (0,0), (0,0), 0.5, colors.black),
-        ('TOPPADDING', (0,0), (0,0), 15),
-    ]))
-    t.wrapOn(c, width, height)
-    t.drawOn(c, 1*cm, height - y*cm - 1.4*cm)
+    c.drawString(1*cm, height - y*cm, "Data: ___/___/______")
 
     c.showPage()
     c.save()
