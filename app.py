@@ -145,8 +145,8 @@ with tab1:
                 "MOM": num_mom,
                 "Área": area,
                 "Equipamento": equipamento,
-                "Responsável": nome_forma
-                "Prazo": prazo.strftime('%d/%m/%Y'),
+                "Responsável": nome_forma,
+                "Prazo": prazo.strftime('%d/%m/%Y')
             })
 
             buffer = BytesIO()
