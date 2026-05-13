@@ -62,9 +62,9 @@ st.markdown("<br>", unsafe_allow_html=True)
 tab1, tab2, tab3, tab4 = st.tabs(["➕ NOVO RCA", "📋 REGISTROS", "📊 DASHBOARD", "📖 GUIA"])
 
 def criar_pdf_mom(data, num_analise, area, maquina, tag, nota_tec, equipamento_parado,
-                  classificacao, hrs_parada, hrs_manut, efeito, manutentor1, turno1, o_que, onde,
+                  classificacao, hrs_parada, hrs_manut, efeito_geral, manutentor1, turno1, o_que, onde,
                   quando, quem, qual, como, quanto, acoes, maquina_4m, material_4m, metodo_4m,
-                  mao_obra_4m, efeito_falha, aval1, aval2, aval3, aval4, comp_danificado,
+                  mao_obra_4m, efeito_falha_4m, aval1, aval2, aval3, aval4, comp_danificado,
                   buscar_almox, encontrou_almox, perda_regulagem, falha_repetitiva, tempo_quebra,
                   pq1, pq2, pq3, pq4, pq5, causa_raiz, padrao, resp_tecnico, assinatura_img):
     buffer = BytesIO()
@@ -125,7 +125,7 @@ def criar_pdf_mom(data, num_analise, area, maquina, tag, nota_tec, equipamento_p
     y += draw_table(data3, [7, 6, 6], y, 0.5)
     y += 0.3
 
-    data4 = [[f"HRS PARADA: {hrs_parada}", f"HRS MANUT: {hrs_manut}", f"EFEITO: {efeito}", f"CLASSIFICAÇÃO: {classificacao}"]]
+    data4 = [[f"HRS PARADA: {hrs_parada}", f"HRS MANUT: {hrs_manut}", f"EFEITO: {efeito_geral}", f"CLASSIFICAÇÃO: {classificacao}"]]
     y += draw_table(data4, [4, 4, 5, 6], y, 0.5)
     y += 0.3
 
@@ -297,7 +297,7 @@ def criar_pdf_mom(data, num_analise, area, maquina, tag, nota_tec, equipamento_p
 
     data_ishikawa = [
         [Paragraph("<b>MÉTODO</b>", style_bold), "", Paragraph("<b>MÁQUINA</b>", style_bold), "", Paragraph("<b>Efeito da Falha/Defeito</b>", style_bold)],
-        [Paragraph(metodo_linhas[0], style_normal), "", Paragraph(maquina_linhas[0], style_normal), "", Paragraph(efeito_falha or "", style_normal)],
+        [Paragraph(metodo_linhas[0], style_normal), "", Paragraph(maquina_linhas[0], style_normal), "", Paragraph(efeito_falha_4m or "", style_normal)],
         [Paragraph(metodo_linhas[1], style_normal), "", Paragraph(maquina_linhas[1], style_normal), "", ""],
         [Paragraph(metodo_linhas[2], style_normal), "", Paragraph(maquina_linhas[2], style_normal), "", ""],
         [Paragraph(metodo_linhas[3], style_normal), "", Paragraph(maquina_linhas[3], style_normal), "", ""],
@@ -382,7 +382,7 @@ with tab1:
         col1, col2, col3 = st.columns(3)
         hrs_parada = col1.text_input("HRS PARADA EGA")
         hrs_manut = col2.text_input("HRS MANUTENÇÃO")
-        efeito = col3.text_input("EFEITO")
+        efeito_geral = col3.text_input("EFEITO")
 
         col1, col2 = st.columns(2)
         manutentor1 = col1.text_input("Manutentor 1")
@@ -435,7 +435,9 @@ with tab1:
         col3, col4 = st.columns(2)
         metodo_4m = col3.text_area("Método", "09-Falta preventiva\n10\n11\n12")
         mao_obra_4m = col4.text_area("Mão de Obra", "13-Falta treinamento\n14\n15\n16")
-        efeito_falha = st.text_input("Efeito da Falha/Defeito")
+
+        # AGORA ESSE CAMPO VAI PRO 4M DIRETO
+        efeito_falha_4m = st.text_input("Efeito da Falha/Defeito")
 
         st.markdown("#### Responsável Técnico")
         resp_tecnico = st.text_input("Nome do Responsável Técnico")
@@ -461,7 +463,18 @@ with tab1:
         else:
             assinatura_img = None
             if canvas_result.image_data is not None:
-                assinatura_img = Image.fromarray(canvas_result.image_data.astype('uint8'), 'RGBA')
+                # Remove o fundo branco pra ficar transparente
+                img_array = canvas_result.image_data.astype('uint8')
+                assinatura_img = Image.fromarray(img_array, 'RGBA')
+                # Converte branco pra transparente
+                datas = assinatura_img.getdata()
+                newData = []
+                for item in datas:
+                    if item[0] == 255 and item[1] == 255 and item[2] == 255:
+                        newData.append((255, 255, 255, 0))
+                    else:
+                        newData.append(item)
+                assinatura_img.putdata(newData)
 
             registro = {
                 "Data": data.strftime('%d/%m/%Y'),
@@ -478,9 +491,9 @@ with tab1:
             st.session_state.historico_mom.append(registro)
 
             pdf = criar_pdf_mom(data, num_analise, area, maquina, tag, nota_tec,
-                               equipamento_parado, classificacao, hrs_parada, hrs_manut, efeito,
+                               equipamento_parado, classificacao, hrs_parada, hrs_manut, efeito_geral,
                                manutentor1, turno1, o_que, onde, quando, quem, qual, como, quanto,
-                               acoes, maquina_4m, material_4m, metodo_4m, mao_obra_4m, efeito_falha,
+                               acoes, maquina_4m, material_4m, metodo_4m, mao_obra_4m, efeito_falha_4m,
                                aval1, aval2, aval3, aval4, comp_danificado, buscar_almox, encontrou_almox,
                                perda_regulagem, falha_repetitiva, tempo_quebra, pq1, pq2, pq3, pq4, pq5,
                                causa_raiz, padrao, resp_tecnico, assinatura_img)
