@@ -109,7 +109,7 @@ def criar_pdf_mom(data, num_analise, area, maquina, tag, nota_tec, equipamento_p
     c.drawCentredString(width/2, height - y*cm, "ANÁLISE DE FALHAS DE MANUTENÇÃO - MOM")
     y += 0.6
 
-    data1 = [[f"DATA: {data.strftime('%d/%m/%Y')}", "USAR SEMPRE PARA PARADAS A PARTIR DE 4 HORAS - PROBLEMAS CRÍTICOS", f"Nº DE ANÁLISE: {num_analise}"]]
+    data1 = [[f"DATA: {data.strftime('%d/%m/%Y')}", "USAR SEMPRE PARA PARADAS A PARTIR DE 4 HORAS", f"Nº DE ANÁLISE: {num_analise}"]]
     y += draw_table(data1, [4, 9, 6], y, 0.5)
     y += 0.3
 
