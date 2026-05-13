@@ -1,0 +1,23 @@
+[33ma11bb73[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m fix: volta layout AQF Industrial com assinaturas
+[33md16fa30[m feat: adiciona campo de assinatura e formatação profissional no PDF
+[33m0a557a6[m feat: app completo com streamlit
+[33m55f07e7[m fix: corrige versao do streamlit
+[33m8e03cfd[m fix: corrige runtime.txt para python 3.11
+[33m73ae64c[m fix: usa python 3.11 compativel com streamlit
+[33m2fbc186[m layout profissional do PDF - data/hora BR e tabelas estilizadas
+[33ma84bbcb[m campo data formato BR
+[33m5cbd71c[m ajusta chave Data para formato BR
+[33mee5a039[m adiciona streamlit_drawable_canvas
+[33mbf6d0c6[m corrige virgula faltando
+[33m5e7bd1a[m corrige formato data para DD/MM/YYYY
+[33m83bc3be[m USAR SEMPRE PARA PARADAS A PARTIR DE 4 HORAS
+[33m367e717[m Volta versao original com tema escuro
+[33m99d5a45[m Remove config e volta CSS puro
+[33m72fd89e[m App AQF completo com GitHub e PDF
+[33m3ca0784[m Merge branch 'main' of https://github.com/edcarlosrodrigues-lang/rca-app
+[33md4e5b6c[m App completo com save CSV + Dashboard
+[33m46197ba[m Create registros_aqf.csv
+[33m3e9858a[m Fix: adiciona reportlab no requirements
+[33m25b6060[m Fix: Ishikawa tabela 4M + cabeçalho 4 horas
+[33mf859f6b[m Atualizei titulo para AQF Industrial
+[33me1516d3[m primeiro commit
