@@ -5,8 +5,12 @@ from reportlab.lib.units import cm
 from reportlab.platypus import Table, TableStyle, Paragraph
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.utils import ImageReader
 from datetime import datetime
 from io import BytesIO
+from streamlit_drawable_canvas import st_canvas
+import numpy as np
+from PIL import Image
 
 st.set_page_config(page_title="AQF Industrial", layout="wide", page_icon="🔧")
 
@@ -62,7 +66,7 @@ def criar_pdf_mom(data, num_analise, area, maquina, tag, nota_tec, equipamento_p
                   quando, quem, qual, como, quanto, acoes, maquina_4m, material_4m, metodo_4m,
                   mao_obra_4m, efeito_falha, aval1, aval2, aval3, aval4, comp_danificado,
                   buscar_almox, encontrou_almox, perda_regulagem, falha_repetitiva, tempo_quebra,
-                  pq1, pq2, pq3, pq4, pq5, causa_raiz, padrao, resp_tecnico):
+                  pq1, pq2, pq3, pq4, pq5, causa_raiz, padrao, resp_tecnico, assinatura_img):
     buffer = BytesIO()
     c = canvas.Canvas(buffer, pagesize=A4)
     width, height = A4
@@ -330,14 +334,24 @@ def criar_pdf_mom(data, num_analise, area, maquina, tag, nota_tec, equipamento_p
     c.drawString(1*cm, height - y*cm, "*Circular as Causas priorizadas")
     y += 2.0
 
-    # ===== ASSINATURA FINAL - SÓ RUBRICA MANUAL =====
+    # ===== ASSINATURA DIGITAL =====
     c.setFont("Helvetica-Bold", 8)
     c.drawString(1*cm, height - y*cm, "RESPONSÁVEL TÉCNICO:")
-    y += 1.5
+    y += 0.5
+    c.setFont("Helvetica", 8)
+    c.drawString(1*cm, height - y*cm, f"{resp_tecnico or ''}")
+    y += 0.5
 
-    c.line(1*cm, height - y*cm, 9*cm, height - y*cm)
-    c.setFont("Helvetica", 6)
-    c.drawString(1*cm, height - y*cm - 0.3*cm, "(Assinatura/Rubrica)")
+    if assinatura_img is not None:
+        img_buffer = BytesIO()
+        assinatura_img.save(img_buffer, format='PNG')
+        img_buffer.seek(0)
+        img_reader = ImageReader(img_buffer)
+        c.drawImage(img_reader, 1*cm, height - y*cm - 2*cm, width=6*cm, height=2*cm, preserveAspectRatio=True, mask='auto')
+        y += 2.2
+    else:
+        c.line(1*cm, height - y*cm, 9*cm, height - y*cm)
+        y += 0.5
 
     c.showPage()
     c.save()
@@ -424,14 +438,31 @@ with tab1:
         efeito_falha = st.text_input("Efeito da Falha/Defeito")
 
         st.markdown("#### Responsável Técnico")
-        resp_tecnico = st.text_input("Nome do Responsável Técnico - será preenchido manualmente")
+        resp_tecnico = st.text_input("Nome do Responsável Técnico")
 
         enviado = st.form_submit_button("Gerar PDF da Análise", use_container_width=True)
+
+    st.markdown("#### Assinatura Digital do Responsável")
+    st.caption("Desenhe sua assinatura abaixo com o mouse ou dedo")
+    canvas_result = st_canvas(
+        fill_color="rgba(255, 255, 255, 0)",
+        stroke_width=2,
+        stroke_color="#000000",
+        background_color="#FFFFFF",
+        height=150,
+        width=400,
+        drawing_mode="freedraw",
+        key="canvas_assinatura"
+    )
 
     if enviado:
         if not num_analise:
             st.error("⚠️ Preenche o 'Nº de Análise de Falhas' pra gerar o PDF!")
         else:
+            assinatura_img = None
+            if canvas_result.image_data is not None:
+                assinatura_img = Image.fromarray(canvas_result.image_data.astype('uint8'), 'RGBA')
+
             registro = {
                 "Data": data.strftime('%d/%m/%Y'),
                 "Nº Análise": num_analise,
@@ -452,9 +483,9 @@ with tab1:
                                acoes, maquina_4m, material_4m, metodo_4m, mao_obra_4m, efeito_falha,
                                aval1, aval2, aval3, aval4, comp_danificado, buscar_almox, encontrou_almox,
                                perda_regulagem, falha_repetitiva, tempo_quebra, pq1, pq2, pq3, pq4, pq5,
-                               causa_raiz, padrao, resp_tecnico)
+                               causa_raiz, padrao, resp_tecnico, assinatura_img)
 
-            st.success("✅ PDF gerado e registro salvo com sucesso!")
+            st.success("✅ PDF gerado com assinatura digital!")
             st.download_button(
                 label="📄 Baixar PDF - Análise MOM",
                 data=pdf,
