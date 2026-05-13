@@ -297,7 +297,7 @@ def criar_pdf_mom(data, num_analise, area, maquina, tag, nota_tec, equipamento_p
 
     data_ishikawa = [
         [Paragraph("<b>MÉTODO</b>", style_bold), "", Paragraph("<b>MÁQUINA</b>", style_bold), "", Paragraph("<b>Efeito da Falha/Defeito</b>", style_bold)],
-        [Paragraph(metodo_linhas[0], style_normal), "", Paragraph(maquina_linhas[0], style_normal), "", Paragraph(efeito_falha_4m or "", style_normal)],
+        [Paragraph(metodo_linhas[0], style_normal), "", Paragraph(maquina_linhas[0], style_normal), "", Paragraph(str(efeito_falha_4m) if efeito_falha_4m else "TESTE", style_normal)],
         [Paragraph(metodo_linhas[1], style_normal), "", Paragraph(maquina_linhas[1], style_normal), "", ""],
         [Paragraph(metodo_linhas[2], style_normal), "", Paragraph(maquina_linhas[2], style_normal), "", ""],
         [Paragraph(metodo_linhas[3], style_normal), "", Paragraph(maquina_linhas[3], style_normal), "", ""],
