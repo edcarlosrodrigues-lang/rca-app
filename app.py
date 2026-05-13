@@ -334,7 +334,6 @@ def criar_pdf_mom(data, num_analise, area, maquina, tag, nota_tec, equipamento_p
     c.drawString(1*cm, height - y*cm, "*Circular as Causas priorizadas")
     y += 2.0
 
-    # ===== ASSINATURA DIGITAL =====
     c.setFont("Helvetica-Bold", 8)
     c.drawString(1*cm, height - y*cm, "RESPONSÁVEL TÉCNICO:")
     y += 0.5
@@ -436,7 +435,6 @@ with tab1:
         metodo_4m = col3.text_area("Método", "09-Falta preventiva\n10\n11\n12")
         mao_obra_4m = col4.text_area("Mão de Obra", "13-Falta treinamento\n14\n15\n16")
 
-        # AGORA ESSE CAMPO VAI PRO 4M DIRETO
         efeito_falha_4m = st.text_input("Efeito da Falha/Defeito")
 
         st.markdown("#### Responsável Técnico")
@@ -463,10 +461,8 @@ with tab1:
         else:
             assinatura_img = None
             if canvas_result.image_data is not None:
-                # Remove o fundo branco pra ficar transparente
                 img_array = canvas_result.image_data.astype('uint8')
                 assinatura_img = Image.fromarray(img_array, 'RGBA')
-                # Converte branco pra transparente
                 datas = assinatura_img.getdata()
                 newData = []
                 for item in datas:
