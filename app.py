@@ -1,11 +1,22 @@
+import streamlit as st
+import pandas as pd
+from datetime import datetime, date, time
+from io import BytesIO
+
+# CONFIGURAÇÃO - TEM QUE SER O PRIMEIRO COMANDO ST
+st.set_page_config(
+    page_title="RCA - Análise de Falhas",
+    layout="wide",
+    page_icon="📋"
+)
+
+# IMPORTS DO REPORTLAB
 from reportlab.lib.pagesizes import A4
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, KeepTogether, PageBreak, Image
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import cm, mm
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
-from io import BytesIO
-from datetime import datetime
 
 def gerar_pdf_mom(dados_mom):
     """
@@ -35,165 +46,140 @@ def gerar_pdf_mom(dados_mom):
         parent=styles['Heading1'],
         fontSize=18,
         textColor=cor_primaria,
-        spaceAfter=0,
-        spaceBefore=0,
+        spaceAfter=6,
         alignment=TA_CENTER,
-        fontName='Helvetica-Bold',
-        leading=22
+        fontName='Helvetica-Bold'
     )
     
     style_subtitulo = ParagraphStyle(
         'Subtitulo',
-        parent=styles['Normal'],
-        fontSize=10,
-        textColor=colors.HexColor('#666666'),
-        spaceAfter=20,
-        alignment=TA_CENTER,
-        fontName='Helvetica'
-    )
-    
-    style_secao = ParagraphStyle(
-        'Secao',
         parent=styles['Heading2'],
-        fontSize=11,
-        textColor=colors.white,
-        backColor=cor_primaria,
-        spaceBefore=15,
-        spaceAfter=8,
-        fontName='Helvetica-Bold',
-        alignment=TA_LEFT,
-        leftIndent=6,
-        rightIndent=0,
-        borderPadding=5
+        fontSize=12,
+        textColor=cor_primaria,
+        spaceAfter=12,
+        fontName='Helvetica-Bold'
     )
     
     style_normal = ParagraphStyle(
         'Normal',
         parent=styles['Normal'],
-        fontSize=9,
-        spaceAfter=4,
-        alignment=TA_LEFT,
-        fontName='Helvetica'
+        fontSize=10,
+        spaceAfter=6,
+        alignment=TA_LEFT
     )
     
-    # EXTRAÇÃO DOS DADOS
-    num_mom = dados_mom.get('num_mom', '')
-    data_ocorrencia = dados_mom.get('data_ocorrencia')
-    area = dados_mom.get('area', '')
-    turno = dados_mom.get('turno', '')
-    equipamento = dados_mom.get('equipamento', '')
-    hora_ocorrencia = dados_mom.get('hora_ocorrencia')
-    responsavel = dados_mom.get('responsavel', '')
-    o_que = dados_mom.get('o_que', '')
-    onde = dados_mom.get('onde', '')
-    quando = dados_mom.get('quando', '')
-    como = dados_mom.get('como', '')
-    quem = dados_mom.get('quem', '')
-    
     # CABEÇALHO
-    elements.append(Paragraph("<b>RELATÓRIO DE ANÁLISE DE FALHAS</b>", style_titulo))
-    elements.append(Paragraph("Manutenção Operacional", style_subtitulo))
-    
-    # LINHA DIVISÓRIA
-    linha_data = [
-        ['', '']
-    ]
-    linha = Table(linha_data, colWidths=[17*cm])
-    linha.setStyle(TableStyle([
-        ('LINEBELOW', (0, 0), (-1, -1), 2, cor_primaria),
-    ]))
-    elements.append(linha)
-    elements.append(Spacer(1, 0.4*cm))
-    
-    # DADOS GERAIS
-    elements.append(Paragraph("1. DADOS GERAIS", style_secao))
-    elements.append(Spacer(1, 0.2*cm))
-    
-    dados = [
-        ['Nº MOM', num_mom, 'DATA DA OCORRÊNCIA', data_ocorrencia.strftime('%d/%m/%Y')],
-        ['ÁREA', area, 'TURNO', turno],
-        ['EQUIPAMENTO', equipamento, 'HORA', hora_ocorrencia.strftime('%H:%M')],
-        ['RESPONSÁVEL', responsavel, '', '']
-    ]
-    
-    t = Table(dados, colWidths=[3.5*cm, 5*cm, 4*cm, 4.5*cm])
-    t.setStyle(TableStyle([
-        # Cabeçalhos - fundo azul
-        ('BACKGROUND', (0, 0), (0, -1), cor_primaria),
-        ('BACKGROUND', (2, 0), (2, -1), cor_primaria),
-        ('TEXTCOLOR', (0, 0), (0, -1), colors.white),
-        ('TEXTCOLOR', (2, 0), (2, -1), colors.white),
-        # Dados - fundo cinza claro
-        ('BACKGROUND', (1, 0), (1, -1), cor_secundaria),
-        ('BACKGROUND', (3, 0), (3, -1), cor_secundaria),
-        # Fonte
-        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
-        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
-        ('FONTNAME', (2, 0), (2, -1), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, -1), 9),
-        # Bordas
-        ('GRID', (0, 0), (-1, -1), 0.5, cor_borda),
-        ('BOX', (0, 0), (-1, -1), 1, cor_primaria),
-        # Alinhamento
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-        # Padding
-        ('LEFTPADDING', (0, 0), (-1, -1), 8),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 8),
-        ('TOPPADDING', (0, 0), (-1, -1), 8),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
-    ]))
-    elements.append(KeepTogether(t))
+    elements.append(Paragraph("RELATÓRIO DE ANÁLISE DE FALHA - RCA", style_titulo))
+    elements.append(Paragraph("Minutes of Meeting - MOM", style_subtitulo))
     elements.append(Spacer(1, 0.5*cm))
     
-    # 5W2H
-    elements.append(Paragraph("2. DESCRIÇÃO DO PROBLEMA - 5W2H", style_secao))
-    elements.append(Spacer(1, 0.2*cm))
+    # TRATAMENTO DE DATA/HORA - EVITA ERRO DO strftime
+    data_ocorrencia = dados_mom.get('data_ocorrencia')
+    hora_ocorrencia = dados_mom.get('hora_ocorrencia')
     
-    w2h = [
-        ["O QUÊ?", Paragraph(o_que or '-', style_normal)],
-        ["ONDE?", Paragraph(onde or '-', style_normal)],
-        ["QUANDO?", Paragraph(quando or '-', style_normal)],
-        ["COMO?", Paragraph(como or '-', style_normal)],
-        ["QUEM?", Paragraph(quem or '-', style_normal)],
+    data_formatada = data_ocorrencia.strftime('%d/%m/%Y') if data_ocorrencia else 'Não informado'
+    hora_formatada = hora_ocorrencia.strftime('%H:%M') if hora_ocorrencia else 'Não informado'
+    
+    # TABELA DE DADOS PRINCIPAIS
+    dados_tabela = [
+        ['Nº MOM', dados_mom.get('num_mom', '-'), 'DATA DA OCORRÊNCIA', data_formatada],
+        ['ÁREA', dados_mom.get('area', '-'), 'TURNO', dados_mom.get('turno', '-')],
+        ['EQUIPAMENTO', dados_mom.get('equipamento', '-'), 'HORA', hora_formatada],
+        ['RESPONSÁVEL', dados_mom.get('responsavel', '-'), 'SETOR', dados_mom.get('setor', '-')],
     ]
-    t_w2h = Table(w2h, colWidths=[3.5*cm, 13.5*cm])
-    t_w2h.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (0, -1), cor_primaria),
-        ('TEXTCOLOR', (0, 0), (0, -1), colors.white),
-        ('BACKGROUND', (1, 0), (1, -1), colors.white),
-        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
-        ('FONTNAME', (1, 0), (1, -1), 'Helvetica'),
-        ('FONTSIZE', (0, 0), (-1, -1), 9),
-        ('GRID', (0, 0), (-1, -1), 0.5, cor_borda),
-        ('BOX', (0, 0), (-1, -1), 1, cor_primaria),
-        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+    
+    tabela = Table(dados_tabela, colWidths=[4*cm, 5*cm, 4*cm, 5*cm])
+    tabela.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (0, -1), cor_secundaria),
+        ('BACKGROUND', (2, 0), (2, -1), cor_secundaria),
+        ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
         ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-        ('LEFTPADDING', (0, 0), (-1, -1), 8),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 8),
-        ('TOPPADDING', (0, 0), (-1, -1), 8),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('FONTNAME', (2, 0), (2, -1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('GRID', (0, 0), (-1, -1), 1, cor_borda),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('TOPPADDING', (0, 0), (-1, -1), 6),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
     ]))
-    elements.append(KeepTogether(t_w2h))
+    
+    elements.append(tabela)
+    elements.append(Spacer(1, 1*cm))
+    
+    # SEÇÕES DE TEXTO
+    secoes = [
+        ('DESCRIÇÃO DA OCORRÊNCIA', dados_mom.get('descricao', 'Não informado')),
+        ('ANÁLISE DA CAUSA RAIZ', dados_mom.get('analise_causa', 'Não informado')),
+        ('AÇÕES CORRETIVAS', dados_mom.get('acoes_corretivas', 'Não informado')),
+        ('AÇÕES PREVENTIVAS', dados_mom.get('acoes_preventivas', 'Não informado')),
+    ]
+    
+    for titulo, conteudo in secoes:
+        elements.append(Paragraph(titulo, style_subtitulo))
+        elements.append(Paragraph(conteudo, style_normal))
+        elements.append(Spacer(1, 0.5*cm))
     
     # RODAPÉ
     elements.append(Spacer(1, 1*cm))
-    rodape_data = [
-        [f"Gerado em: {datetime.now().strftime('%d/%m/%Y às %H:%M')}", f"Página 1 de 1"]
-    ]
-    rodape = Table(rodape_data, colWidths=[8.5*cm, 8.5*cm])
-    rodape.setStyle(TableStyle([
-        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
-        ('FONTSIZE', (0, 0), (-1, -1), 8),
-        ('TEXTCOLOR', (0, 0), (-1, -1), colors.HexColor('#999999')),
-        ('ALIGN', (0, 0), (0, 0), 'LEFT'),
-        ('ALIGN', (1, 0), (1, 0), 'RIGHT'),
-        ('LINEABOVE', (0, 0), (-1, -1), 1, cor_borda),
-        ('TOPPADDING', (0, 0), (-1, -1), 6),
-    ]))
-    elements.append(rodape)
+    data_geracao = datetime.now().strftime('%d/%m/%Y às %H:%M')
+    elements.append(Paragraph(f"Relatório gerado em {data_geracao}", style_normal))
     
-    # GERA O PDF
     doc.build(elements)
     buffer.seek(0)
     return buffer
+
+# INTERFACE STREAMLIT
+st.title("📋 Gerador de RCA - Minutes of Meeting")
+
+st.markdown("---")
+
+col1, col2 = st.columns(2)
+
+with col1:
+    num_mom = st.text_input("Nº MOM", placeholder="Ex: 2026-001")
+    area = st.text_input("Área", placeholder="Ex: Laminação")
+    equipamento = st.text_input("Equipamento", placeholder="Ex: Ponte Rolante 05")
+    responsavel = st.text_input("Responsável", placeholder="Ex: João Silva")
+
+with col2:
+    data_ocorrencia = st.date_input("Data da Ocorrência", value=date.today())
+    hora_ocorrencia = st.time_input("Hora da Ocorrência", value=datetime.now().time())
+    turno = st.selectbox("Turno", ["Manhã", "Tarde", "Noite", "Administrativo"])
+    setor = st.text_input("Setor", placeholder="Ex: Manutenção Mecânica")
+
+st.markdown("---")
+
+descricao = st.text_area("Descrição da Ocorrência", height=100, placeholder="Descreva o que aconteceu...")
+analise_causa = st.text_area("Análise da Causa Raiz", height=100, placeholder="Método 5 Porquês, Ishikawa...")
+acoes_corretivas = st.text_area("Ações Corretivas", height=100, placeholder="O que foi feito para corrigir...")
+acoes_preventivas = st.text_area("Ações Preventivas", height=100, placeholder="O que será feito para não repetir...")
+
+st.markdown("---")
+
+if st.button("🔄 Gerar PDF do RCA", type="primary", use_container_width=True):
+    dados = {
+        'num_mom': num_mom,
+        'area': area,
+        'equipamento': equipamento,
+        'responsavel': responsavel,
+        'data_ocorrencia': data_ocorrencia,
+        'hora_ocorrencia': hora_ocorrencia,
+        'turno': turno,
+        'setor': setor,
+        'descricao': descricao,
+        'analise_causa': analise_causa,
+        'acoes_corretivas': acoes_corretivas,
+        'acoes_preventivas': acoes_preventivas,
+    }
+    
+    pdf_buffer = gerar_pdf_mom(dados)
+    
+    st.success("✅ PDF gerado com sucesso!")
+    
+    st.download_button(
+        label="📥 Baixar PDF",
+        data=pdf_buffer,
+        file_name=f"RCA_{num_mom}_{data_ocorrencia.strftime('%Y%m%d')}.pdf",
+        mime="application/pdf",
+        use_container_width=True
+    )
